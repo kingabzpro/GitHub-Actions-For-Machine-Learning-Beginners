@@ -1,22 +1,22 @@
+import matplotlib.pyplot as plt
 import pandas as pd
-
+import skops.io as sio
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+)
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler, OrdinalEncoder
 
-from sklearn.metrics import accuracy_score, f1_score
-import matplotlib.pyplot as plt
-from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
-
-import skops.io as sio
-
 # loading the data
-bank_df = pd.read_csv("train.csv", index_col="id", nrows=1000)
+bank_df = pd.read_csv("./train.csv", index_col="id", nrows=1000)
 bank_df = bank_df.drop(["CustomerId", "Surname"], axis=1)
 bank_df = bank_df.sample(frac=1)
 
@@ -92,14 +92,16 @@ print("Accuracy:", str(round(accuracy, 2) * 100) + "%", "F1:", round(f1, 2))
 ## Confusion Matrix Plot
 predictions = complete_pipe.predict(X_test)
 cm = confusion_matrix(y_test, predictions, labels=complete_pipe.classes_)
-disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=complete_pipe.classes_)
+disp = ConfusionMatrixDisplay(
+    confusion_matrix=cm, display_labels=complete_pipe.classes_
+)
 disp.plot()
 plt.savefig("model_results.png", dpi=120)
 
 ## Write metrics to file
 with open("metrics.txt", "w") as outfile:
     outfile.write(f"\nAccuracy = {round(accuracy, 2)}, F1 Score = {round(f1, 2)}")
-    
+
 
 # saving the pipeline
 sio.dump(complete_pipe, "bank_pipeline.skops")
